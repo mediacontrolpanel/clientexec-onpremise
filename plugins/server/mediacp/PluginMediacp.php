@@ -371,12 +371,25 @@ class PluginMediacp extends ServerPlugin
         $server->quota = strtolower($args['package']['variables']['Quota']) == 'unlimited' ? 0 : $args['package']['variables']['Quota'];
         $server->stream_targets_limit = strtolower($args['package']['variables']['Stream_Targets']) == 'unlimited' ? -1 : $args['package']['variables']['Stream_Targets'];
 
-        if ( !empty($this->getCustomProperty( 'CustomerPassword')) ) {
-            $server->password = $this->getCustomProperty( 'CustomerPassword');
+        switch($server->plugin){
+            case 'shoutcast198':
+            case 'shoutcast2':
+                $server->password = !empty($this->getCustomProperty( 'CustomerPassword')) ? $this->getCustomProperty( 'CustomerPassword') : $this->mediacp_generateStrongPassword();
+                $server->adminpassword = $this->mediacp_generateStrongPassword();
+                break;
+
+            case 'icecast':
+            case 'icecast_kh':
+                $server->source_password = !empty($this->getCustomProperty( 'CustomerPassword')) ? $this->getCustomProperty( 'CustomerPassword') : $this->mediacp_generateStrongPassword();
+                $server->password = $this->mediacp_generateStrongPassword();
+                break;
         }
 
+
         # Source Plugin
-        # IF AUDIO SERVICE
+        if (in_array($server->plugin, ['shoutcast198','shoutcast2','icecast','icecast_kh']) && !empty($args['package']['variables']['AutoDJ_Type'])) {
+            $server->sourceplugin = $args['package']['variables']['AutoDJ_Type'];
+        }
 
         return (array) $server;
     }
@@ -412,6 +425,7 @@ class PluginMediacp extends ServerPlugin
     public function getAutoDJValues()
     {
         $values = [
+            '' => 'No AutoDJ Service',
             'liquidsoap' => 'Liquidsoap',
             'ices04' => 'Ices 0.4',
             'ices20' => 'Ices 2.0',
