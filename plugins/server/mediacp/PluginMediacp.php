@@ -467,12 +467,14 @@ class PluginMediacp extends ServerPlugin
         $linkText = $this->user->lang('Login to Server');
         $args = $this->buildParams($userPackage);
 
+        $this->setup($args);
+        $url = ($this->useSSL == 1 ? 'https' : 'http') . '://' . $this->host .':'. $this->port;
         if ($getRealLink) {
             // call login at server
 
             return [
-                'link'    => '<li><a target="_blank" href="url to login">' .$linkText . '</a></li>',
-                'rawlink' =>  'url to login',
+                'link'    => '<li><a target="_blank" href="'.$url.'">' .$linkText . '</a></li>',
+                'rawlink' =>  $url,
                 'form'    => ''
             ];
         } else {
