@@ -69,6 +69,16 @@ class PluginMediacp extends ServerPlugin
                 'description' => 'Enter the name of the package custom field that will hold the service name',
                 'value'=>'Service Name'
             ],
+            'Service Password Custom Field' => [
+                'type' => 'text',
+                'description' => 'Enter the name of the package custom field that will hold the service password',
+                'value'=>'Service Password'
+            ],
+            'Service Portbase Custom Field' => [
+                'type' => 'text',
+                'description' => 'Enter the name of the package custom field that will hold the service portbase',
+                'value'=>'Service Portbase'
+            ],
             'Actions' => [
                 'type' => 'hidden',
                 'description' => 'Current actions that are active for this plugin per server',
@@ -261,7 +271,7 @@ class PluginMediacp extends ServerPlugin
         }
 
         $this->resetCustomProperties();
-        $this->resetCustomFields();
+        $this->resetCustomFields($args);
     }
 
     public function update($args)
@@ -350,15 +360,15 @@ class PluginMediacp extends ServerPlugin
 
         $response = $this->call("/api/{$response->service_id}/media-service/show");
         $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Name_Custom_Field'], $response->unique_id, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
-        $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Portbase_Custom_Field'], $response->service_id, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
-        $this->userPackage->setCustomField("Service Password", $response->password, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
+        $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Portbase_Custom_Field'], $response->portbase, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
+        $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Password_Custom_Field'], $response->password, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
 
     }
 
     public function buildServiceParameters($args, $user)
     {
         $unique_id = $this->userPackage->getCustomField($args['server']['variables']['plugin_mediacp_Service_Name_Custom_Field'], CUSTOM_FIELDS_FOR_PACKAGE);
-        $portbase = (int) $this->userPackage->getCustomField($args['server']['variables']['plugin_mediacp_Portbase_Custom_Field'], CUSTOM_FIELDS_FOR_PACKAGE);
+        $portbase = (int) $this->userPackage->getCustomField($args['server']['variables']['plugin_mediacp_Service_Portbase_Custom_Field'], CUSTOM_FIELDS_FOR_PACKAGE);
 
         $server = new stdClass();
         $server->userid = $user->id;
@@ -613,10 +623,9 @@ class PluginMediacp extends ServerPlugin
     protected function resetCustomProperties(){
         $this->userPackage->setCustomField("Server Acct Properties", json_encode([]));
     }
-    protected function resetCustomFields(){
-        $this->userPackage->setCustomField("Customer Password", "", CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
-        $this->userPackage->setCustomField("Portbase", "", CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
-        $this->userPackage->setCustomField("Service Password", "", CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
+    protected function resetCustomFields($args){
+        $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Password_Custom_Field'], "", CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
+        $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Portbase_Custom_Field'], "", CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
     }
 
 }
