@@ -348,21 +348,23 @@ class PluginMediacp extends ServerPlugin
         if ( !$user || empty($user->id) ) throw new CE_Exception("User was not created successfully.");
 
         $this->setCustomProperty( 'CustomerID', $user->id);
-        if ( !empty($userPassword) ) $this->setCustomProperty( 'CustomerPassword', $userPassword);
+        $this->userPackage->setCustomField("Password", $userPassword);
         $this->userPackage->setCustomField("Customer Password", $userPassword, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
 
         # Create Service
         $response = $this->call("/api/0/media-service/store", CURLOPT_POST, $this->buildServiceParameters($args, $user));
         if ( $response->status != 1 ) throw new CE_Exception("Unable to create service.\n\n{$response->error}\n\nDebugging: " . print_r($response,true));
 
+        $this->userPackage->setCustomField("User Name", $args['customer']['email']);
         $this->setCustomProperty( 'ServiceID', $response->service_id);
-        $this->setCustomProperty( 'PortBase', $response->portbase);
+        $this->setCustomProperty( 'PortBase', $response->return->portbase);
 
         $response = $this->call("/api/{$response->service_id}/media-service/show");
         $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Name_Custom_Field'], $response->unique_id, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
         $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Portbase_Custom_Field'], $response->portbase, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
         $this->userPackage->setCustomField($args['server']['variables']['plugin_mediacp_Service_Password_Custom_Field'], $response->password, CUSTOM_FIELDS_FOR_PACKAGE); # Optionally available for email templates
 
+        CE_Lib::log(4, "Account vars: " . json_encode($this->buildParams($this->userPackage),true));
     }
 
     public function buildServiceParameters($args, $user)
@@ -384,13 +386,13 @@ class PluginMediacp extends ServerPlugin
         switch($server->plugin){
             case 'shoutcast198':
             case 'shoutcast2':
-                $server->password = !empty($this->getCustomProperty( 'CustomerPassword')) ? $this->getCustomProperty( 'CustomerPassword') : $this->mediacp_generateStrongPassword();
+                $server->password = $this->mediacp_generateStrongPassword();
                 $server->adminpassword = $this->mediacp_generateStrongPassword();
                 break;
 
             case 'icecast':
             case 'icecast_kh':
-                $server->source_password = !empty($this->getCustomProperty( 'CustomerPassword')) ? $this->getCustomProperty( 'CustomerPassword') : $this->mediacp_generateStrongPassword();
+                $server->source_password = $this->mediacp_generateStrongPassword();
                 $server->password = $this->mediacp_generateStrongPassword();
                 break;
         }
