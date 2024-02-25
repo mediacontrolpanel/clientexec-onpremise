@@ -340,7 +340,7 @@ class PluginMediacp extends ServerPlugin
         ]);
         if ( isset($response->errors->username) || $response->errors->username == 'Username must be unique' ){
             $user = $this->call("/api/0/user/show", NULL, ['username'=>$args['customer']['email']]);
-            $userPassword = '';
+            $userPassword = '[EXISTING PASSWORD]';
         }else{
             $user = $response->user;
         }
